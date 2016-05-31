@@ -77,71 +77,7 @@ Adversary::Adversary(char *path,char *plaintext,int plaintext_length):total_quer
 	free(to);
 }
 
-void Adversary::Adversary_Step3(){
-	IntervalSet *M_new = new IntervalSet();
-	Interval *interval_new;
-	list<Interval*> list = set->set;
-	ListIter iter;
-	BIGNUM *a = BN_new();
-	BIGNUM *b = BN_new();
-	BIGNUM *r = BN_new();
-	BIGNUM *r_up = BN_new();
-	BIGNUM *bound_down = BN_new();
-	BIGNUM *bound_up = BN_new();
-	BIGNUM *rem = BN_new();
-	BN_CTX *ctx = BN_CTX_new();
 
-	//For all [a,b] in Mi-1,Now si-1 should be changed as si
-	for(iter =list.begin(); iter != list.end();++iter){
-		(*iter)->Interval_get_bound(a,b);
-		//r_down bound = a*si-(3B-1)/n
-		BN_mul(r,a,s,ctx);
-		BN_sub(r,r,B3);
-		BN_div(r,rem,r,pub_key->n,ctx);
-		if(!BN_is_zero(rem))
-			BN_add_word(r,1);
-		//r_up bound = b*si-2B/n
-		BN_mul(r_up,b,s,ctx);
-		BN_sub(r_up,r_up,B2);
-		BN_div(r_up,NULL,r_up,pub_key->n,ctx);
-		// for all r in[r_down,r_up]
-		while(BN_cmp(r,r_up)<=0){
-			//calculate the interval need to be unioned
-			//max(2B+rn/si , a)
-			BN_mul(bound_down,r,pub_key->n,ctx);//r*n
-			BN_add(bound_down,bound_down,B2);//r*n+2B
-			BN_div(bound_down,rem,bound_down,s,ctx);//(r*n+2B)/s
-			if(!BN_is_zero(rem))
-				BN_add_word(bound_down,1);
-			if(BN_cmp(a,bound_down)>0)
-				BN_copy(bound_down,a);
-			//min(3B-1+rn/si , b)
-			BN_mul(bound_up,r,pub_key->n,ctx);//r*n
-			BN_add(bound_up,bound_up,B3);//r*n+(3B-1)
-			BN_div(bound_up,NULL,bound_up,s,ctx);//(r*n+3B-1)/s
-			if(BN_cmp(bound_up,b)>0)
-				BN_copy(bound_up,b);
-
-			//Union the new interval into the interval set
-			interval_new = new Interval(bound_down,bound_up);
-			M_new->IntervalSet_Union(interval_new);
-
-			BN_add_word(r,1);
-		}
-	}
-	//use Mi instead of Mi-1
-	delete set;
-	set = M_new;
-	set->IntervalSet_Show_Totallen();
-	//memory need to free, don't forget it
-	BN_free(a);
-	BN_free(b);
-	BN_free(r);
-	BN_free(r_up);
-	BN_free(bound_up);
-	BN_free(bound_down);
-	BN_CTX_free(ctx);
-}
 
 int Adversary::Adversary_Query(int & query_fd){
 	int p_len = 0,ret = 0;
@@ -182,7 +118,7 @@ int Adversary::Adversary_Query(int & query_fd){
 
 int Adversary::Adversary_Step2(int port,char mode){
 	struct sockaddr_in ad;
-	int query_fd = 0,ret = 0,retry =40;
+	int query_fd = 0,ret = 0,retry =1000;
 	BN_CTX *ctx = BN_CTX_new();
 
 	//Open a TCP connection
@@ -265,9 +201,82 @@ int Adversary::Adversary_Step2(int port,char mode){
 	default:
 		throw runtime_error("Unknown option in step 2");
 	}
+	//for test
+	/*
+	BIO *bio_test = BIO_new_fp(stdout,BIO_NOCLOSE);
+	BN_print(bio_test,s);
+	cout<<endl;
+	BIO_free(bio_test);
+	 */
 	close(query_fd);
 	BN_CTX_free(ctx);
 	return ret;
+}
+
+void Adversary::Adversary_Step3(){
+	IntervalSet *M_new = new IntervalSet();
+	Interval *interval_new;
+	list<Interval*> list = set->set;
+	ListIter iter;
+	BIGNUM *a = BN_new();
+	BIGNUM *b = BN_new();
+	BIGNUM *r = BN_new();
+	BIGNUM *r_up = BN_new();
+	BIGNUM *bound_down = BN_new();
+	BIGNUM *bound_up = BN_new();
+	BIGNUM *rem = BN_new();
+	BN_CTX *ctx = BN_CTX_new();
+
+	//For all [a,b] in Mi-1,Now si-1 should be changed as si
+	for(iter =list.begin(); iter != list.end();++iter){
+		(*iter)->Interval_get_bound(a,b);
+		//r_down bound = a*si-(3B-1)/n
+		BN_mul(r,a,s,ctx);
+		BN_sub(r,r,B3);
+		BN_div(r,rem,r,pub_key->n,ctx);
+		if(!BN_is_zero(rem))
+			BN_add_word(r,1);
+		//r_up bound = b*si-2B/n
+		BN_mul(r_up,b,s,ctx);
+		BN_sub(r_up,r_up,B2);
+		BN_div(r_up,NULL,r_up,pub_key->n,ctx);
+		// for all r in[r_down,r_up]
+		while(BN_cmp(r,r_up)<=0){
+			//calculate the interval need to be unioned
+			//max(2B+rn/si , a)
+			BN_mul(bound_down,r,pub_key->n,ctx);//r*n
+			BN_add(bound_down,bound_down,B2);//r*n+2B
+			BN_div(bound_down,rem,bound_down,s,ctx);//(r*n+2B)/s
+			if(!BN_is_zero(rem))
+				BN_add_word(bound_down,1);
+			if(BN_cmp(a,bound_down)>0)
+				BN_copy(bound_down,a);
+			//min(3B-1+rn/si , b)
+			BN_mul(bound_up,r,pub_key->n,ctx);//r*n
+			BN_add(bound_up,bound_up,B3);//r*n+(3B-1)
+			BN_div(bound_up,NULL,bound_up,s,ctx);//(r*n+3B-1)/s
+			if(BN_cmp(bound_up,b)>0)
+				BN_copy(bound_up,b);
+
+			//Union the new interval into the interval set
+			interval_new = new Interval(bound_down,bound_up);
+			M_new->IntervalSet_Union(interval_new);
+
+			BN_add_word(r,1);
+		}
+	}
+	//use Mi instead of Mi-1
+	delete set;
+	set = M_new;
+	set->IntervalSet_Show_Totallen();
+	//memory need to free, don't forget it
+	BN_free(a);
+	BN_free(b);
+	BN_free(r);
+	BN_free(r_up);
+	BN_free(bound_up);
+	BN_free(bound_down);
+	BN_CTX_free(ctx);
 }
 
 int Adversary::Adversary_Step4(){
@@ -278,11 +287,12 @@ int Adversary::Adversary_Step4(){
 		list<Interval*> list = set->set;
 		list.front()->Interval_get_bound(a,b);
 		BIO* out = BIO_new_fp(stdout,BIO_NOCLOSE);
+		/*
 		cout<<endl;
 		BN_print(out,a);
 		cout<<endl;
 		BN_print(out,b);
-		cout<<endl;
+		cout<<endl;*/
 		//BN_add_word(a,1);
 		if(BN_cmp(a,b) == 0){
 			ret = 1;

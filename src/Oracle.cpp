@@ -25,7 +25,7 @@ Oracle::Oracle(char *path,oracle_engine engine){
 	this->engine = engine;
 }
 
-int Oracle_start_listen(Oracle &oracle,int port){
+int Oracle_start_listen(Oracle &oracle,int port,char *type){
 	cout<<"enter a new query"<<endl;
 	struct sockaddr_in o_ad,a_ad;
 	int listen_fd = 0,query_fd = 0,a_len = 0,ret =0,p_len = 0,on =1;
@@ -56,7 +56,7 @@ int Oracle_start_listen(Oracle &oracle,int port){
 		 p = (unsigned char*)buff;
 		 n2s(p,p_len);
 		 BN_bin2bn(p,p_len,c);
-		if(oracle.engine(oracle.priv_key,c))
+		if(oracle.engine(oracle.priv_key,c,type))
 			break;
 		if(write(query_fd,"negative",strlen("negative"))<0)
 			throw runtime_error("Socket write failed");
@@ -73,20 +73,51 @@ Oracle::~Oracle() {
 	// TODO Auto-generated destructor stub
 }
 
-bool Oracle_TTT(RSA *rsa,BIGNUM  *c){
+bool Oracle_engine(RSA *priv_key,BIGNUM *c,char *type){
 	BIGNUM *m = BN_new();
 	BN_CTX *ctx = BN_CTX_new();
 	unsigned char *m_str = NULL;
-	int m_len = 0;
+	int m_len = 0,i = 0;
 	bool ret = false;
 
-	BN_mod_exp(m,c,rsa->d,rsa->n,ctx);
+	BN_mod_exp(m,c,priv_key->d,priv_key->n,ctx);
 	m_len = BN_num_bytes(m);
-	if(m_len == (BN_num_bytes(rsa->n)-1)){
+	if(m_len == (BN_num_bytes(priv_key->n)-1)){
 		m_str = new unsigned char[m_len];
 		BN_bn2bin(m,m_str);
 		if(m_str[0]==0x02)
 			ret = true;
+		if(strcmp(type,"TTT")==0){}
+		else if(strcmp(type,"TFT") == 0){
+			for(i = 1;i<9;i++)
+				if(m_str[i] == 0x00)
+					ret = false;
+		}
+		else if(strcmp(type,"FTT") == 0){
+			bool FTT_ret = false;
+			for(i = 9;i<m_len;i++)
+				if(m_str[i]  == 0x00)
+					FTT_ret = true;
+			ret = FTT_ret &&  ret;
+		}
+		else if(strcmp(type,"FFT") == 0){
+			for(i = 1;i < 9;i++)
+				if(m_str[i] == 0x00)
+					ret = false;
+			bool FFT_ret = false;
+			for(i = 9;i < m_len;i++)
+				if(m_str[i]==0x00)
+					FFT_ret = true;
+			ret = FFT_ret && ret;
+		}
+		else if(strcmp(type,"FFF") == 0){
+			for(i = 1;i < 9;i++)
+				if(m_str[i] == 0x00)
+					ret = false;
+			if(m_str[m_len-6] !=  0x00)
+				ret = false;
+		}
+		else throw runtime_error("No chosen type of oracle engine");
 		free(m_str);
 	}
 
@@ -94,3 +125,4 @@ bool Oracle_TTT(RSA *rsa,BIGNUM  *c){
 	BN_free(m);
 	return ret;
 }
+

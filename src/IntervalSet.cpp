@@ -83,15 +83,15 @@ int IntervalSet::IntervalSet_Union(Interval *interval){
 		throw runtime_error("The bound of merge not correct set!");
 
 	//test code
-/*
+	/*
 	BIO* bio = BIO_new_fp(stdout,BIO_NOCLOSE|BIO_FP_TEXT);
 	cout<<"The merge down bound:";
 	BN_print(bio,down_merge);
 	cout<<endl<<"The merge up bound:";
 	BN_print(bio,up_merge);
 	cout<<endl;
-	BIO_free(bio);*/
-
+	BIO_free(bio);
+	*/
 	//erase all  the sets to be merged in the bound
 	//and record the situation
 	for(iter = set.begin();iter != set.end();){

@@ -77,12 +77,9 @@ int main(int argc,char *argv[]) {
 	}
 	try{
 		if(is_oracle == 1  && prikey_file != NULL  && port  != 0){
-			if(strcmp(oracle_type,"TTT") == 0)
-				oracle = new Oracle(prikey_file,Oracle_TTT);
-			else
-				throw runtime_error("Unknown oracle type");
+				oracle = new Oracle(prikey_file,Oracle_engine);
 			while(true)
-				Oracle_start_listen(*oracle,port);
+				Oracle_start_listen(*oracle,port,oracle_type);
 		}else if(is_adversary == 1 && pubkey_file != NULL && plain_text != NULL && port != 0){
 			adversary = new  Adversary(pubkey_file,plain_text,strlen(plain_text));
 		    adversary->Adversary_Attack(port);
