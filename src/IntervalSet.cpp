@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : IntervalSet.cpp
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : The Bleichenbacher IntervalSet source file
 //============================================================================
 

@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : def.h
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : Bleichenbacher attack program header file
 //============================================================================
 

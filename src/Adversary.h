@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Adversary.h
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : The bleichenbacher adversary header file
 //============================================================================
 
@@ -39,6 +39,7 @@ public:
 	//step  3 will not provide any return value
 	void Adversary_Step3();
 	int Adversary_Step4();
+	//include the different steps
 	int Adversary_Attack(int port);
 	int Adversary_Query(int &query_fd);
 };

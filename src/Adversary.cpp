@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Adversary.cpp
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : The bleichenbacher adversary source file
 //============================================================================
 
@@ -299,10 +299,10 @@ int Adversary::Adversary_Step4(){
 			cout<<"The result: ";
 			BN_print(out,b);
 			cout<<endl;
-			BIO_free(out);
 			//m = a*s-1 mod n
 		}
 	}
+	BIO_free(out);
 	BN_free(a);
 	BN_free(b);
 	return ret;

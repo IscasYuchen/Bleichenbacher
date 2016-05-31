@@ -1,7 +1,7 @@
 //============================================================================
 // Name        :Interval.cpp
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : The interval class source file
 //============================================================================
 #include "Interval.h"

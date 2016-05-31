@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Bleichenbacher.cpp
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : Bleichenbacher attack and oracle program
 //============================================================================
 #include "def.h"
@@ -11,6 +11,10 @@
 #include "IntervalSet.h"
 
 using std::strcmp;
+
+const int default_port = 5555;
+char default_plain_text[] = "aaa";
+char default_oracle_type[] = "TTT";
 
 //void test_intervalset();
 
@@ -68,19 +72,27 @@ int main(int argc,char *argv[]) {
 		cout<<"The program shows how bleichenbacher attack works:"<<endl;
 		cout<<"-oracle				This program will run as oracle."<<endl;
 		cout<<"-adversary			This  program will run as adversary."<<endl;
-		cout<<"-port				In which port the program runs."<<endl;
+		cout<<"-port				In which port the program runs.(default:5555)"<<endl;
 		cout<<"-prikey file			The private key that the oracle uses."<<endl;
 		cout<<"-pubkey file			The public key that the adversary uses."<<endl;
-		cout<<"-plaintext string		The plaintext that the adversary want to decrypt without private key."<<endl;
-		cout<<"-type string	 		The type of the oracle,including TTT."<<endl;
+		cout<<"-plaintext string		The plaintext that the adversary want to decrypt without private key.(default:aaa)"<<endl;
+		cout<<"-type string	 		The type of the oracle,including TTT.(default: TTT)"<<endl;
 		goto end;
 	}
 	try{
-		if(is_oracle == 1  && prikey_file != NULL  && port  != 0){
+		if(port == 0)
+			port =	default_port;
+		if(oracle_type == NULL)
+			oracle_type = default_oracle_type;
+		if(plain_text == NULL)
+			plain_text = default_plain_text;
+		if(prikey_file == NULL && pubkey_file == NULL)
+			throw runtime_error("You must set a key file in a program launch");
+		if(is_oracle == 1  && prikey_file != NULL){
 				oracle = new Oracle(prikey_file,Oracle_engine);
 			while(true)
 				Oracle_start_listen(*oracle,port,oracle_type);
-		}else if(is_adversary == 1 && pubkey_file != NULL && plain_text != NULL && port != 0){
+		}else if(is_adversary == 1 && pubkey_file != NULL){
 			adversary = new  Adversary(pubkey_file,plain_text,strlen(plain_text));
 		    adversary->Adversary_Attack(port);
 		}else{

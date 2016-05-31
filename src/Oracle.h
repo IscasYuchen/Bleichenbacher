@@ -1,7 +1,7 @@
 //============================================================================
 // Name        : Oracle.h
 // Author      : YuchenWang
-// Version     : 0.0.1
+// Version     : 0.0.2
 // Description : The bleichenbacher oracle header file
 //============================================================================
 
